@@ -6,6 +6,9 @@ import java.util.Optional;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.mongodb.internal.connection.tlschannel.NeedsWriteException;
 
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
@@ -20,11 +23,23 @@ public class JournalEntryService {
 	@Autowired
 	private UserService userService;
 	
+	@Transactional
 	public void saveEntry(JournalEntry journalEntry, String userName) {
-		User user = userService.findByUserName(userName);
-		JournalEntry saved = journalEntryRepository.save(journalEntry);
-		user.getJournalEntries().add(saved);
-		userService.saveUser(user);
+
+	    User user = userService.findByUserName(userName);
+
+	    if (user == null) {
+	        throw new RuntimeException("User not found");
+	    }
+
+	    // save journal entry
+	    JournalEntry saved = journalEntryRepository.save(journalEntry);
+
+	    // add entry to user
+	    user.getJournalEntries().add(saved);
+
+	    // save updated user
+	    userService.saveUser(user);
 	}
 	
 	public void saveEntry(JournalEntry journalEntry) {

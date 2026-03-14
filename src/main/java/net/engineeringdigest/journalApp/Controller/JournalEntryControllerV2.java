@@ -32,7 +32,7 @@ public class JournalEntryControllerV2 {
     @Autowired
     private UserService userService;
     
-    @GetMapping("{userName}")
+    @GetMapping("/{userName}")
     public ResponseEntity<?> getAllJournalEntriesOfUser(@PathVariable String userName){
     User user = userService.findByUserName(userName);
         List<JournalEntry> all = user.getJournalEntries();
@@ -42,14 +42,15 @@ public class JournalEntryControllerV2 {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("{userName}")
-    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry myEntry, @PathVariable String userName) {
+    @PostMapping("/{userName}")
+    public ResponseEntity<?> createEntry(@RequestBody JournalEntry myEntry, @PathVariable String userName) {
         try {
             myEntry.setDate(LocalDateTime.now());
             journalEntryService.saveEntry(myEntry, userName);
             return new ResponseEntity<>(myEntry, HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
